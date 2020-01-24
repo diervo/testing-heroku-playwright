@@ -1,19 +1,37 @@
 const pw = require('playwright');
-const iPhone11 = pw.devices['iPhone 11 Pro'];
+const express = require('express')
+const app = express();
+const port = process.env.PORT || 3000;
+const engines = ['chromium', 'firefox', 'webkit'];
 
-(async () => {
-  const browser = await pw.webkit.launch();
-  const context = await browser.newContext({
-    viewport: iPhone11.viewport,
-    userAgent: iPhone11.userAgent,
-    geolocation: { longitude: 12.492507, latitude: 41.889938 },
-    permissions: { 'https://www.google.com': ['geolocation'] }
-  });
+app.get('/', (req, res) => {
+  res.send(`
+  <a href="/test/chromium">Test Chromium</a>
+  <a href="/test/firefox">Test Firefox</a>
+  <a href="/test/webkit">Test Webkit</a>
+  `);
+});
 
-  const page = await context.newPage('https://maps.google.com');
-  await page.click('text="Your location"');
-  await page.waitForRequest(/.*preview\/pwa/);
-  await page.screenshot({ path: 'colosseum-iphone.png' });  
-  console.log('DONE!!');
-  await browser.close();
-})();
+app.get('/test/:browserName', async (req, res) => {
+  const name = req.params.browserName;
+  console.log(`Testing browser engine: ${name}`);
+  if (!engines.includes(name)) {
+    return res.send(`Not available engine ${name}`);
+  }
+
+  try {
+    const browser = await pw[name].launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
+    const context = await browser.newContext();
+    const page = await context.newPage('http://whatsmyuseragent.org/');
+    
+    await page.screenshot({ path: `example-${name}.png` });
+    await browser.close();
+    console.log(`Testing ${name} successfull!`);
+    res.send('DONE');
+  } catch(err) {
+    console.log(err);
+    res.send(err + '');
+  }
+});
+
+app.listen(port, () => console.log(`Example app listening on port ${port}!`))

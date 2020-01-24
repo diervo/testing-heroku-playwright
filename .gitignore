@@ -1,0 +1,19 @@
+# OS artifacts
+.DS_STORE
+
+# Tools artifacts
+node_modules
+coverage
+.eslintcache
+.vscode
+*.log
+*.pem
+tsconfig.tsbuildinfo
+
+# Project artifacts
+__benchmarks_results__
+
+# Builds
+packages/**/build/
+packages/**/dist/
+docs/dist/
